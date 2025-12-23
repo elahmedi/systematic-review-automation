@@ -1,0 +1,599 @@
+{
+	"fieldSchema": {
+		"fields": {
+			"title": {
+				"type": "string",
+				"method": "extract",
+				"description": "The exact title of the research paper\t"
+			},
+			"journalName": {
+				"type": "string",
+				"method": "extract",
+				"description": "Name of the journal where the paper was published"
+			},
+			"yearOfPublication": {
+				"type": "integer",
+				"method": "generate",
+				"description": "The year in which the paper was released"
+			},
+			"funding": {
+				"type": "string",
+				"method": "generate",
+				"description": "Was the study funded?"
+			},
+			"fundingType": {
+				"type": "string",
+				"method": "classify",
+				"description": "Type of funding received",
+				"enum": [
+					"Industry",
+					"Public",
+					"Mixed",
+					"University",
+					"Unclear",
+					"National"
+				],
+				"enumDescriptions": {
+					"Industry": "",
+					"Public": "",
+					"Mixed": "",
+					"University": "",
+					"Unclear": "",
+					"National": "Funding agency is a national agency that carries a country's name"
+				}
+			},
+			"trialRegistration": {
+				"type": "string",
+				"method": "generate",
+				"description": "Was the study registered in a registry? (Said that it was registered OR Said not registered OR did not say anything about registration)"
+			},
+			"registrationPlatform": {
+				"type": "string",
+				"method": "extract",
+				"description": "If the study was registered, on which trial registration platform was it registered? (e.g., ClinicalTrials.gov, EU-CTR, ICTRP, did not say)"
+			},
+			"registrationNumber": {
+				"type": "string",
+				"method": "extract",
+				"description": "If the study was registered, what is the trial registration number or identifier?"
+			},
+			"arabCountries": {
+				"type": "string",
+				"method": "generate",
+				"description": "What are the names of the arab countries involved in the study? (Co-author affiliation or study site)"
+			},
+			"typeOfStudy": {
+				"type": "string",
+				"method": "classify",
+				"description": "Was this a single-center or multi-center study?",
+				"enum": [
+					"singlecenter",
+					"multicenter"
+				],
+				"enumDescriptions": {
+					"singlecenter": "The study was conducted in one site. If no mention of site names, locations, or quantity, assume single center.",
+					"multicenter": "Multi center study. Assume multicenter if explicitly states that more than one center or site participated in the study (data came from more than one place)"
+				}
+			},
+			"geographicalLocation": {
+				"type": "string",
+				"method": "classify",
+				"description": "Geographical location",
+				"enum": [
+					"Arab",
+					"regional",
+					"international"
+				],
+				"enumDescriptions": {
+					"Arab": "Arab countries",
+					"regional": "Arab and regioning countries",
+					"international": "International"
+				}
+			},
+			"correspondingAuthorCountry": {
+				"type": "string",
+				"method": "generate",
+				"description": "What is the country of the corresponding author?"
+			},
+			"TotalAuthors": {
+				"type": "integer",
+				"method": "generate",
+				"description": "Total number of authors"
+			},
+			"recruitingSite": {
+				"type": "string",
+				"method": "generate",
+				"description": "What is the total number of study sites involved in the study?"
+			},
+			"pilotRCT": {
+				"type": "string",
+				"method": "classify",
+				"description": "Whether a pilot RCT was conducted prior: Yes, No, or Not mentioned",
+				"enum": [
+					"done",
+					"notdone"
+				],
+				"enumDescriptions": {
+					"notdone": "No pilot preceded the present study.",
+					"done": "Pilot study performed before the present study was conducted."
+				}
+			},
+			"therapeuticArea": {
+				"type": "string",
+				"method": "classify",
+				"description": "disease or therapeutic area addressed in the study",
+				"enum": [
+					"Cancer",
+					"Diabetes",
+					"Orthopedic",
+					"Physiology",
+					"Psychiatry",
+					"Cardiology",
+					"Neurology",
+					"Urology",
+					"OBGYN",
+					"Gastrointestinal",
+					"Dermatology",
+					"Ophthalmology",
+					"Autoimmune",
+					"Other"
+				],
+				"enumDescriptions": {
+					"Cancer": "",
+					"Diabetes": "",
+					"Orthopedic": "",
+					"Physiology": "",
+					"Psychiatry": "",
+					"Cardiology": "",
+					"Neurology": "",
+					"Urology": "",
+					"OBGYN": "",
+					"Gastrointestinal": "",
+					"Dermatology": "",
+					"Ophthalmology": "",
+					"Autoimmune": "",
+					"Other": ""
+				}
+			},
+			"targetGroup": {
+				"type": "string",
+				"method": "classify",
+				"description": "Which patient group did the study target?",
+				"enum": [
+					"Pediatric",
+					"Adult",
+					"Pregnant",
+					"Unspecified"
+				],
+				"enumDescriptions": {
+					"Pediatric": "",
+					"Adult": "",
+					"Pregnant": "",
+					"Unspecified": ""
+				}
+			},
+			"totalParticipants": {
+				"type": "integer",
+				"method": "generate",
+				"description": "What is the total number of study participants"
+			},
+			"methodSampleSource": {
+				"type": "string",
+				"method": "generate",
+				"description": "Sample source or participant recruitment method (hospital, outpatient, community.)"
+			},
+			"methodRandomization": {
+				"type": "string",
+				"method": "generate",
+				"description": "Was randomization (patient allocation into different groups) performed (yes, no, not mentioned)?"
+			},
+			"methodRandomizationRatio": {
+				"type": "string",
+				"method": "generate",
+				"description": "What was the ratio of randomization? For example, 1:1 if patients were randomized to equivalent groups., 1:2 if double the number of patients was in a group, etc..."
+			},
+			"methodRandomizationUnit": {
+				"type": "string",
+				"method": "classify",
+				"description": "Unit of randomization (if done)",
+				"enum": [
+					"individual",
+					"site",
+					"cluster",
+					"Other"
+				],
+				"enumDescriptions": {
+					"individual": "Randomization on patient level",
+					"site": "Randomization on site level",
+					"cluster": "Cluster randomization",
+					"Other": ""
+				}
+			},
+			"methodBlocking_": {
+				"type": "string",
+				"method": "generate",
+				"description": "Was blocking performed (Yes. No, Not Mentioned)"
+			},
+			"methodConcealment": {
+				"type": "string",
+				"method": "generate",
+				"description": "Was concealment performed (yes, no, not mentioned)"
+			},
+			"methodDomain": {
+				"type": "string",
+				"method": "classify",
+				"description": "Intervention domain",
+				"enum": [
+					"HealthcareIntervention",
+					"PublicHealth",
+					"HealthSystemsAndPolicy",
+					"NutritionAndDiet",
+					"LifestyleAndBehavioral",
+					"HealthEducationAndAwareness",
+					"TraditionalAndComplementaryMedicine",
+					"Other"
+				],
+				"enumDescriptions": {
+					"Other": "",
+					"HealthcareIntervention": "Healthcare intervention",
+					"PublicHealth": "Public health intervention",
+					"HealthSystemsAndPolicy": "Health systems and policy",
+					"NutritionAndDiet": "Nutrition and diet",
+					"LifestyleAndBehavioral": "Lifestyle and behavioral",
+					"HealthEducationAndAwareness": "Health education and awareness",
+					"TraditionalAndComplementaryMedicine": "Traditional and complementary medicine"
+				}
+			},
+			"Age": {
+				"type": "array",
+				"method": "generate",
+				"description": "Age distribution. It is usually found in a table. ",
+				"items": {
+					"type": "object",
+					"method": "extract",
+					"properties": {
+						"AgeRange": {
+							"type": "string",
+							"method": "extract",
+							"description": "Age range of the group"
+						},
+						"StandardDeviation": {
+							"type": "string",
+							"method": "extract",
+							"description": "Standard deviation (Also known as SD) of age of patients in the group. It usually follows the character ±"
+						},
+						"MeanAge": {
+							"type": "string",
+							"method": "extract",
+							"description": "Mean age of patients in the group. Age (y) or age (years) as row or column titles. The value is usually in the form of x ± y"
+						},
+						"Group": {
+							"type": "string",
+							"method": "extract",
+							"description": "Name of the study group"
+						},
+						"MedianAge": {
+							"type": "string",
+							"method": "extract",
+							"description": "Median age of patients in the group."
+						},
+						"IQR_Age": {
+							"type": "string",
+							"method": "extract",
+							"description": "Interquartile range of patients in the group"
+						}
+					}
+				}
+			},
+			"typeOfIntervention": {
+				"type": "string",
+				"method": "generate",
+				"description": "Medication or not?"
+			},
+			"InterventionName": {
+				"type": "string",
+				"method": "generate",
+				"description": "Name of specific intervention employed in the study"
+			},
+			"OtherInterventions": {
+				"type": "string",
+				"method": "generate",
+				"description": "Are there any other interventions?"
+			},
+			"typeOfComparator": {
+				"type": "string",
+				"method": "generate",
+				"description": "Type of comparator: Placebo, Standard care, an active comparator, or usual care, or none"
+			},
+			"placebo": {
+				"type": "boolean",
+				"method": "generate",
+				"description": "Was placebo was used as comparator?"
+			},
+			"standardOfCare": {
+				"type": "string",
+				"method": "generate",
+				"description": "Whether standard of care (usual care) was used as comparator"
+			},
+			"activeComparator": {
+				"type": "string",
+				"method": "generate",
+				"description": "What is the name of the thing that the Intervention is being compared with?"
+			},
+			"otherComparator": {
+				"type": "string",
+				"method": "generate",
+				"description": "Other type of comparator used (if applicable), with specification"
+			},
+			"primaryOutcomes": {
+				"type": "string",
+				"method": "generate",
+				"description": "Primary outcomes of the study"
+			},
+			"statisticalTypeOfPrimaryOutcome": {
+				"type": "string",
+				"method": "classify",
+				"description": "Statistical type: Binary/dichotomous, Continuous, Categorical, Ordinal, or Other\t",
+				"enum": [
+					"BinaryOrDichotomous",
+					"Continuous",
+					"Categorical",
+					"Ordinal",
+					"Other"
+				],
+				"enumDescriptions": {
+					"BinaryOrDichotomous": "",
+					"Continuous": "",
+					"Categorical": "",
+					"Ordinal": "",
+					"Other": ""
+				}
+			},
+			"outcomeType": {
+				"type": "string",
+				"method": "classify",
+				"description": "Outcome structure: Single outcome or Composite outcome",
+				"enum": [
+					"SingleOutcome",
+					"CompositeOutcome"
+				],
+				"enumDescriptions": {
+					"SingleOutcome": "",
+					"CompositeOutcome": ""
+				}
+			},
+			"powerCalculation": {
+				"type": "boolean",
+				"method": "generate",
+				"description": "Was power calculated for the sample size?"
+			},
+			"assumptions": {
+				"type": "string",
+				"method": "generate",
+				"description": "Where assumptions for power calculation stated a priori?"
+			},
+			"justification": {
+				"type": "string",
+				"method": "generate",
+				"description": "Was a justification for sample size provided?"
+			},
+			"statisticalPower": {
+				"type": "string",
+				"method": "extract",
+				"description": "Statistical power indicated (e.g., 80%, 90%)"
+			},
+			"interimAnalyses": {
+				"type": "string",
+				"method": "generate",
+				"description": "Were interim analyses performed?"
+			},
+			"adaptiveSampleSize": {
+				"type": "string",
+				"method": "generate",
+				"description": "Was an adaptive sample size design used?"
+			},
+			"ittPrimaryMethod": {
+				"type": "string",
+				"method": "generate",
+				"description": "Was intention-to-treat (ITT) analysis the primary method?"
+			},
+			"ppPrimaryMethod": {
+				"type": "string",
+				"method": "generate",
+				"description": "Was per-protocol (PP) analysis the primary method?"
+			},
+			"bothIttPpSignificant": {
+				"type": "string",
+				"method": "classify",
+				"description": "Whether both ITT and PP analyses were statistically significant",
+				"enum": [
+					"Yes",
+					"No",
+					"NotApplicable"
+				],
+				"enumDescriptions": {
+					"Yes": "",
+					"No": "",
+					"NotApplicable": ""
+				}
+			},
+			"onlyPpSignificant": {
+				"type": "string",
+				"method": "generate",
+				"description": "Whether only PP analysis was statistically significant"
+			},
+			"primaryModeOfPresentation": {
+				"type": "string",
+				"method": "classify",
+				"description": "Primary mode of presenting results: Relative effect or Absolute effect",
+				"enum": [
+					"RelativeEffect",
+					"AbsoluteEffect",
+					"Other"
+				],
+				"enumDescriptions": {
+					"RelativeEffect": "",
+					"AbsoluteEffect": "",
+					"Other": ""
+				}
+			},
+			"adjustedEstimate": {
+				"type": "string",
+				"method": "generate",
+				"description": "Was the primary outcome an adjusted estimate?"
+			},
+			"reportedPValue": {
+				"type": "string",
+				"method": "generate",
+				"description": "Was a p-value reported for the primary outcome or estimate?"
+			},
+			"TotalRandomized": {
+				"type": "integer",
+				"method": "extract",
+				"description": "Total number of patients who were randomized"
+			},
+			"TotalCompletedFollowup": {
+				"type": "string",
+				"method": "generate",
+				"description": "What was the total number of patients who completed the study?"
+			},
+			"lossFollowUp": {
+				"type": "string",
+				"method": "generate",
+				"description": "What was the reported number of patients who did not complete follow-up?"
+			},
+			"earlyStoppingEfficacy": {
+				"type": "string",
+				"method": "generate",
+				"description": "Was the trial terminated early because interim analysis demonstrated significant result?"
+			},
+			"earlyStoppingFutility": {
+				"type": "string",
+				"method": "generate",
+				"description": "Is there mention of the trial being terminated early because interim analysis demonstrated no benefit?"
+			},
+			"controlGroupEventRate": {
+				"type": "string",
+				"method": "generate",
+				"description": "What was the primary event rate in the control group?"
+			},
+			"observedExactValue": {
+				"type": "string",
+				"method": "generate",
+				"description": "What was the observed value of the primary outcome?"
+			},
+			"precisionOfAssumption": {
+				"type": "string",
+				"method": "generate",
+				"description": "Is precision of assumptions related to power calculation reported?"
+			},
+			"expectedVsActualDelta": {
+				"type": "string",
+				"method": "generate",
+				"description": "What was mentioned regarding effect size inflation?"
+			},
+			"expectedVsActualEffectSize": {
+				"type": "string",
+				"method": "generate",
+				"description": "What was mentioned on how the effect differs among the group?"
+			},
+			"pilotRCTquestion": {
+				"type": "string",
+				"method": "generate",
+				"description": "Is there mention of a pilot study that preceded this work?"
+			},
+			"handlingMissingData": {
+				"type": "string",
+				"method": "generate",
+				"description": "Were there missing data. And how were they adjusted?"
+			},
+			"methodStratification_": {
+				"type": "string",
+				"method": "generate",
+				"description": "Describe any used stratification method"
+			},
+			"Sex": {
+				"type": "array",
+				"method": "generate",
+				"description": "Sex distribution",
+				"items": {
+					"type": "object",
+					"method": "extract",
+					"properties": {
+						"Group": {
+							"type": "string",
+							"method": "extract",
+							"description": "Name of the study group"
+						},
+						"ProportionFemale": {
+							"type": "string",
+							"method": "extract",
+							"description": "Absolute number or proportion or ratio of females in the group"
+						},
+						"ProportionMale": {
+							"type": "string",
+							"method": "extract",
+							"description": "Absolute number or proportion or ratio of males in the group"
+						},
+						"MeanAge": {
+							"type": "string",
+							"method": "extract",
+							"description": "Mean age of patients in the group"
+						},
+						"SD_Age": {
+							"type": "string",
+							"method": "extract",
+							"description": "Standard deviation (also known as SD) of age of patients in the group."
+						},
+						"Range_Age": {
+							"type": "string",
+							"method": "extract",
+							"description": "Age range of the group."
+						},
+						"MedianAge": {
+							"type": "string",
+							"method": "extract",
+							"description": "Median age of patients in the group"
+						},
+						"IQR_Age": {
+							"type": "string",
+							"method": "extract",
+							"description": "Interquartile range of patients in the group"
+						}
+					}
+				}
+			},
+			"funder": {
+				"type": "string",
+				"method": "generate",
+				"description": "name of organization that funded the work"
+			},
+			"TypeOfRCT": {
+				"type": "string",
+				"method": "classify",
+				"description": "What is the Phase of the Clinical Trial?",
+				"enum": [
+					"pilot",
+					"phase1",
+					"phase2",
+					"phase3",
+					"phase4",
+					"NotMentioned"
+				],
+				"enumDescriptions": {
+					"pilot": "This is a pilot trial",
+					"phase1": "This is a Phase I (phase 1) clinical trial.",
+					"phase2": "This is a Phase II (phase 2) clinical trial",
+					"phase3": "This is a Phase III (phase 3) clinical trial",
+					"phase4": "This is a Phase IV (phase 4) clinical trial",
+					"NotMentioned": "Phase of clinical trial is not mentioned"
+				}
+			},
+			"blinding": {
+				"type": "string",
+				"method": "generate",
+				"description": "Was there any blinding?"
+			}
+		}
+	}
+}

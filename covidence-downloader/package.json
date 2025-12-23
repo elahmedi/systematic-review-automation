@@ -1,0 +1,24 @@
+{
+  "name": "covidence-pdf-downloader",
+  "version": "1.0.0",
+  "description": "Automated PDF downloader for Covidence systematic review studies",
+  "main": "covidence-pdf-downloader.js",
+  "scripts": {
+    "start": "node covidence-pdf-downloader.js"
+  },
+  "keywords": [
+    "covidence",
+    "pdf",
+    "downloader",
+    "automation",
+    "systematic-review"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "csv-writer": "^1.6.0",
+    "dotenv": "^16.3.1",
+    "puppeteer": "^21.11.0"
+  }
+}
+

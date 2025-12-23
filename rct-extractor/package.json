@@ -1,0 +1,31 @@
+{
+  "name": "rct-content-understanding",
+  "version": "1.0.0",
+  "description": "RCT Data Extraction using Azure Content Understanding",
+  "main": "extract-rct.js",
+  "type": "module",
+  "scripts": {
+    "extract": "node extract-rct.js",
+    "test": "node test-connection.js",
+    "start": "node extract-rct.js",
+    "sync-schema": "node sync-analyzer-schema.js",
+    "verify-schema": "node verify-schema-sync.js"
+  },
+  "dependencies": {
+    "csv-parser": "^3.2.0",
+    "csv-writer": "^1.6.0",
+    "dotenv": "^16.3.1",
+    "fs-extra": "^11.3.0",
+    "node-fetch": "^3.3.2",
+    "openai": "^6.9.1",
+    "winston": "^3.11.0"
+  },
+  "keywords": [
+    "azure",
+    "content-understanding",
+    "rct",
+    "data-extraction"
+  ],
+  "author": "",
+  "license": "MIT"
+}

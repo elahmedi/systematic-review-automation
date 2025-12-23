@@ -1,0 +1,35 @@
+{
+  "name": "library-pdf-retriever",
+  "version": "1.0.0",
+  "description": "Automated PDF retrieval using university library access via EZProxy",
+  "main": "library-retriever.js",
+  "type": "module",
+  "scripts": {
+    "retrieve": "node library-retriever.js",
+    "batch": "node batch-retriever.js",
+    "install-browser": "npx playwright install chromium",
+    "parse-ris": "node ris-parser.js"
+  },
+  "dependencies": {
+    "playwright": "^1.40.0",
+    "dotenv": "^16.3.1",
+    "winston": "^3.11.0",
+    "csv-parser": "^3.0.0",
+    "csv-writer": "^1.6.0",
+    "fs-extra": "^11.3.0",
+    "sanitize-filename": "^1.6.3",
+    "node-fetch": "^3.3.2"
+  },
+  "keywords": [
+    "pdf",
+    "retrieval",
+    "ezproxy",
+    "library",
+    "doi",
+    "systematic-review",
+    "automation"
+  ],
+  "author": "",
+  "license": "MIT"
+}
+
