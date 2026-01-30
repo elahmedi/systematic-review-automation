@@ -1,13 +1,17 @@
 from __future__ import annotations
 
+import hashlib
+import hmac
 import os
 import tempfile
+import time
 import uuid
 import webbrowser
 from pathlib import Path
+from typing import Optional
 
-from fastapi import FastAPI, File, Form, HTTPException, UploadFile
-from fastapi.responses import FileResponse, HTMLResponse
+from fastapi import Cookie, FastAPI, File, Form, HTTPException, UploadFile
+from fastapi.responses import FileResponse, HTMLResponse, RedirectResponse
 
 from risk_of_bias.config import settings
 from risk_of_bias.frameworks.rob2 import get_rob2_framework
@@ -17,12 +21,245 @@ from risk_of_bias.types._framework_types import Framework
 APP_TEMP_DIR = Path(tempfile.gettempdir()) / "risk_of_bias_web"
 APP_TEMP_DIR.mkdir(parents=True, exist_ok=True)
 
+# Session expiry time in seconds (24 hours)
+SESSION_EXPIRY = 86400
+
 app = FastAPI()
 
 
-@app.get("/", response_class=HTMLResponse)
-def index() -> str:
-    """Return a simple upload form."""
+def _create_session_token(username: str) -> str:
+    """Create a signed session token for a user.
+
+    Parameters
+    ----------
+    username : str
+        The username to create a session for.
+
+    Returns
+    -------
+    str
+        A signed session token containing username and expiry timestamp.
+    """
+    expiry = int(time.time()) + SESSION_EXPIRY
+    data = f"{username}:{expiry}"
+    signature = hmac.new(
+        settings.web_secret_key.encode(),
+        data.encode(),
+        hashlib.sha256,
+    ).hexdigest()
+    return f"{data}:{signature}"
+
+
+def _verify_session_token(token: str) -> Optional[str]:
+    """Verify a session token and return the username if valid.
+
+    Parameters
+    ----------
+    token : str
+        The session token to verify.
+
+    Returns
+    -------
+    Optional[str]
+        The username if the token is valid and not expired, None otherwise.
+    """
+    try:
+        parts = token.split(":")
+        if len(parts) != 3:
+            return None
+        username, expiry_str, signature = parts
+        expiry = int(expiry_str)
+
+        # Check if token has expired
+        if time.time() > expiry:
+            return None
+
+        # Verify signature
+        data = f"{username}:{expiry_str}"
+        expected_signature = hmac.new(
+            settings.web_secret_key.encode(),
+            data.encode(),
+            hashlib.sha256,
+        ).hexdigest()
+
+        if hmac.compare_digest(signature, expected_signature):
+            return username
+        return None
+    except (ValueError, AttributeError):
+        return None
+
+
+def _is_authenticated(session_token: Optional[str]) -> bool:
+    """Check if the current request is authenticated.
+
+    Parameters
+    ----------
+    session_token : Optional[str]
+        The session token from the request cookie.
+
+    Returns
+    -------
+    bool
+        True if authentication is disabled or the session is valid.
+    """
+    if not settings.auth_enabled:
+        return True
+    if not session_token:
+        return False
+    return _verify_session_token(session_token) is not None
+
+
+def _get_login_html() -> str:
+    """Return the HTML for the login page.
+
+    Returns
+    -------
+    str
+        HTML content for the login form.
+    """
+    return """
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Login - Risk of Bias Assessment</title>
+        <script src="https://cdn.tailwindcss.com"></script>
+    </head>
+    <body class="bg-gray-50 min-h-screen flex items-center justify-center">
+        <div class="max-w-md w-full space-y-8 p-8">
+            <div class="text-center">
+                <h1 class="text-3xl font-bold text-gray-900 mb-2">Risk of Bias Assessment</h1>
+                <p class="text-gray-600 mb-8">Please sign in to continue</p>
+            </div>
+
+            {{ERROR_MESSAGE}}
+
+            <form action="/login" method="post" class="space-y-6">
+                <div>
+                    <label for="username" class="block text-sm font-medium text-gray-700 mb-2">
+                        Username
+                    </label>
+                    <input type="text" id="username" name="username" required
+                        class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+                </div>
+
+                <div>
+                    <label for="password" class="block text-sm font-medium text-gray-700 mb-2">
+                        Password
+                    </label>
+                    <input type="password" id="password" name="password" required
+                        class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+                </div>
+
+                <div>
+                    <button type="submit" class="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors">
+                        Sign In
+                    </button>
+                </div>
+            </form>
+        </div>
+    </body>
+    </html>
+    """
+
+
+@app.get("/login", response_class=HTMLResponse)
+def login_page(error: Optional[str] = None) -> str:
+    """Return the login page.
+
+    Parameters
+    ----------
+    error : Optional[str]
+        Optional error message to display.
+
+    Returns
+    -------
+    str
+        HTML content for the login page.
+    """
+    html = _get_login_html()
+    if error:
+        error_html = (
+            '<div class="bg-red-50 border-l-4 border-red-400 p-4 mb-6">'
+            '<div class="flex">'
+            '<div class="ml-3">'
+            '<p class="text-sm text-red-700">Invalid username or password</p>'
+            "</div>"
+            "</div>"
+            "</div>"
+        )
+        return html.replace("{{ERROR_MESSAGE}}", error_html)
+    return html.replace("{{ERROR_MESSAGE}}", "")
+
+
+@app.post("/login")
+def login(
+    username: str = Form(...),
+    password: str = Form(...),
+) -> RedirectResponse:
+    """Process login form submission.
+
+    Parameters
+    ----------
+    username : str
+        The submitted username.
+    password : str
+        The submitted password.
+
+    Returns
+    -------
+    RedirectResponse
+        Redirect to main page on success, or login page with error on failure.
+    """
+    if username == settings.web_username and password == settings.web_password:
+        response = RedirectResponse(url="/", status_code=303)
+        token = _create_session_token(username)
+        response.set_cookie(
+            key="session_token",
+            value=token,
+            httponly=True,
+            max_age=SESSION_EXPIRY,
+            samesite="lax",
+        )
+        return response
+
+    return RedirectResponse(url="/login?error=1", status_code=303)
+
+
+@app.get("/logout")
+def logout() -> RedirectResponse:
+    """Log out the current user.
+
+    Returns
+    -------
+    RedirectResponse
+        Redirect to login page after clearing the session cookie.
+    """
+    response = RedirectResponse(url="/login", status_code=303)
+    response.delete_cookie(key="session_token")
+    return response
+
+
+@app.get("/", response_class=HTMLResponse, response_model=None)
+def index(
+    session_token: Optional[str] = Cookie(None),
+) -> HTMLResponse | RedirectResponse:
+    """Return a simple upload form.
+
+    Parameters
+    ----------
+    session_token : Optional[str]
+        Session token from cookie for authentication.
+
+    Returns
+    -------
+    HTMLResponse | RedirectResponse
+        The upload form HTML, or redirect to login if authentication required.
+    """
+    if not _is_authenticated(session_token):
+        return RedirectResponse(url="/login", status_code=303)
+
     html = """
     <!DOCTYPE html>
     <html lang="en">
@@ -33,6 +270,7 @@ def index() -> str:
         <script src="https://cdn.tailwindcss.com"></script>
     </head>
     <body class="bg-gray-50 min-h-screen flex items-center justify-center">
+        {{LOGOUT_BUTTON}}
         <div class="max-w-md w-full space-y-8 p-8">
             <div class="text-center">
                 <h1 class="text-3xl font-bold text-gray-900 mb-2">Risk of Bias Assessment</h1>
@@ -178,16 +416,50 @@ def index() -> str:
     else:
         html = html.replace("{{API_KEY_FIELD}}", key_field)
 
+    # Add logout button if authentication is enabled
+    if settings.auth_enabled:
+        logout_button = (
+            '<div class="absolute top-4 right-4">'
+            '<a href="/logout" class="text-sm text-gray-600 hover:text-gray-900 '
+            "bg-white px-3 py-2 rounded-md shadow-sm border border-gray-200 "
+            'hover:bg-gray-50 transition-colors">Sign Out</a>'
+            "</div>"
+        )
+        html = html.replace("{{LOGOUT_BUTTON}}", logout_button)
+    else:
+        html = html.replace("{{LOGOUT_BUTTON}}", "")
+
     return html.replace("{{MODEL_OPTIONS}}", options)
 
 
-@app.post("/analyze", response_class=HTMLResponse)
+@app.post("/analyze", response_class=HTMLResponse, response_model=None)
 def analyze(
     file: UploadFile = File(...),
     model: str = Form(settings.fast_ai_model),
     api_key: str | None = Form(None),
-) -> str:
-    """Process a PDF with the selected model and return the assessment HTML."""
+    session_token: Optional[str] = Cookie(None),
+) -> str | RedirectResponse:
+    """Process a PDF with the selected model and return the assessment HTML.
+
+    Parameters
+    ----------
+    file : UploadFile
+        The uploaded PDF file.
+    model : str
+        The AI model to use for analysis.
+    api_key : str | None
+        Optional OpenAI API key.
+    session_token : Optional[str]
+        Session token from cookie for authentication.
+
+    Returns
+    -------
+    str | RedirectResponse
+        The assessment HTML, or redirect to login if authentication required.
+    """
+    if not _is_authenticated(session_token):
+        return RedirectResponse(url="/login", status_code=303)
+
     file_id = uuid.uuid4().hex
     work_dir = APP_TEMP_DIR / file_id
     work_dir.mkdir(parents=True, exist_ok=True)
@@ -241,9 +513,31 @@ def analyze(
     return html_content.replace("<body>", f"<body>{download_links}", 1)
 
 
-@app.get("/download/{file_id}/{filename}")
-def download(file_id: str, filename: str) -> FileResponse:
-    """Return a saved file for download."""
+@app.get("/download/{file_id}/{filename}", response_model=None)
+def download(
+    file_id: str,
+    filename: str,
+    session_token: Optional[str] = Cookie(None),
+) -> FileResponse | RedirectResponse:
+    """Return a saved file for download.
+
+    Parameters
+    ----------
+    file_id : str
+        The unique identifier for the analysis session.
+    filename : str
+        The name of the file to download.
+    session_token : Optional[str]
+        Session token from cookie for authentication.
+
+    Returns
+    -------
+    FileResponse | RedirectResponse
+        The requested file, or redirect to login if authentication required.
+    """
+    if not _is_authenticated(session_token):
+        return RedirectResponse(url="/login", status_code=303)
+
     file_path = APP_TEMP_DIR / file_id / filename
     if not file_path.is_file():
         raise HTTPException(status_code=404, detail="File not found")

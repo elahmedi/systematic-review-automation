@@ -1,3 +1,4 @@
+import secrets
 from typing import Optional
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -31,10 +32,23 @@ class Settings(BaseSettings):
     azure_openai_api_version: str = "2024-08-06"
     azure_openai_deployment_name: Optional[str] = None
 
+    # Web authentication settings
+    web_username: Optional[str] = None
+    web_password: Optional[str] = None
+    web_secret_key: str = secrets.token_hex(32)
+
     @property
     def use_azure(self) -> bool:
         """Check if Azure OpenAI should be used based on available settings."""
         return bool(self.azure_openai_endpoint and self.azure_openai_api_key)
+
+    @property
+    def auth_enabled(self) -> bool:
+        """Check if web authentication is enabled.
+
+        Authentication is enabled when both username and password are set.
+        """
+        return bool(self.web_username and self.web_password)
 
 
 settings = Settings()
